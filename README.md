@@ -10,7 +10,7 @@ Follow [instructions](https://www.r-project.org/) to install `R`.
 Then:
 
 ```console
--$ git clone https://github.com/algo-cancer/Sgootr
+-$ git clone https://github.com/algo-cancer/Sgootr.git
 -$ cd Sgootr
 ```
 
