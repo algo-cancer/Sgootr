@@ -11,7 +11,7 @@ if __name__ == "__main__":
     f = open(snakemake.log[0], 'w')
     sys.stderr = sys.stdout = f
 
-    f.write('[{}] gmelin-larch is filtering your input' \
+    f.write('[{}] Sgootr is verifying your input' \
             ' matrices\n'.format(datetime.now()))
 
     methylated_reads = np.load(snakemake.input[0], allow_pickle=True)

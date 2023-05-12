@@ -1,5 +1,5 @@
 '''
-    prune.py <t{i}.nwk> <heuristically_called_statuses.npz> <t{i}_site_mask.npz>
+    prune.py <t{i-1}/tree.nwk> <t{i-1}/site_mask.npz> <heuristically_called_statuses.npz>
 '''
 
 import sys, signal, numpy as np, multiprocessing as mp
@@ -36,9 +36,10 @@ def compute_internal_persistence_score(i, leaves, partition_validity_threshold):
     subtree2_statuses = np.delete(arr_sts, subtree1_indices, axis=0)
 
     '''
-        if either subset of the partition has fewer than 50% of its leaves with 
-        heuristically called methylation status (due to lack of read coverage),
-        we cannot generate valid persistence score for that site at the partition
+        if either subset of the partition has fewer than <partition_validity_threshold>
+        fraction of its leaves with heuristically called methylation status (due to lack
+        of read coverage), we cannot generate valid persistence score for that site at 
+        the partition
     '''
     no_status_1 = np.sum(np.isnan(subtree1_statuses), axis=0)
     no_status_2 = np.sum(np.isnan(subtree2_statuses), axis=0)
@@ -67,15 +68,15 @@ if __name__ == "__main__":
     sys.stderr = sys.stdout = f
 
     kappa = float(f_kpa)
-    assert (kappa > 0) and (kappa < 1), 'Kappa must be a fraction.'
+    assert (kappa > 0) and (kappa < 1), 'Kappa must be a fraction (0,1).'
     partition_validity_threshold, minimum_subtree_size = float(f_pvt), float(f_mss)
     assert (partition_validity_threshold > 0) and (partition_validity_threshold < 1), \
-           'partition_validity_threshold must be a fraction.'    
+           'partition_validity_threshold must be a decimal (0,1).'    
     assert (minimum_subtree_size > 0) and (minimum_subtree_size < 1), \
-           'minimum_subtree_size must be a fraction.'
+           'minimum_subtree_size must be a decimal (0,1).'
 
 
-    f.write('[{}] gmelin-larch is perfroming site pruning with ' \
+    f.write('[{}] Sgootr is perfroming site pruning with ' \
             'kappa={}\n'.format(datetime.now(), kappa))
 
     tree = skbio.TreeNode.read(f_nwk)
@@ -88,7 +89,7 @@ if __name__ == "__main__":
     ####     
     min_nodes = round(sts.shape[0] * minimum_subtree_size)
     max_nodes = sts.shape[0] - min_nodes
-    f.write('[{}] gmelin-larch is computing persistence scores for {} ' \
+    f.write('[{}] Sgootr is computing persistence scores for {} ' \
             'remaining sites\n'.format(datetime.now(), np.sum(mask)))
     internal_names, internal_leaves = zip(*[(n.name, n.subset()) for n in tree.non_tips() if \
                                             len(n.subset()) >= min_nodes and \

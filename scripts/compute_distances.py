@@ -58,7 +58,7 @@ if __name__ == "__main__":
     f = open(snakemake.log[0], 'w')
     sys.stderr = sys.stdout = f
 
-    f.write('[{}] gmelin-larch is iteratively constructing ' \
+    f.write('[{}] Sgootr is iteratively constructing ' \
             'the methylation phylogeny\n'.format(datetime.now()))
 
     mask = np.isinf(np.load(snakemake.input[0], allow_pickle=True)['mask'])

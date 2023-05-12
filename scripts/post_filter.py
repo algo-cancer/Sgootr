@@ -1,5 +1,5 @@
 '''
-    post_filter.py <corrected_rc_cna.npz>
+    post_filter.py <corrected_rc_cna.npz> <whitelist.txt> <labels.csv>
 '''
 
 import sys, numpy as np, pandas as pd
@@ -10,13 +10,18 @@ if __name__ == "__main__":
     f = open(snakemake.log[0], 'w')
     sys.stderr = sys.stdout = f
 
-    f.write('[{}] gmelin-larch is performing post-correction ' \
+    f.write('[{}] Sgootr is performing post-correction ' \
             'filtering of the input matrices\n'.format(datetime.now()))
 
     obj = np.load(snakemake.input[0], allow_pickle=True)
     _N, _M, _C, cells = obj['n'], obj['m'], obj['cna'], obj['rows']
     site_coverage_threshold = float(snakemake.params.site_coverage_threshold)
     cell_coverage_threshold = float(snakemake.params.cell_coverage_threshold)
+
+    assert (site_coverage_threshold >= 0) and (site_coverage_threshold <= 1), \
+           "site_coverage_threshold must be a decimal [0,1]."
+    assert (cell_coverage_threshold >= 0) and (cell_coverage_threshold <= 1), \
+           "cell_coverage_threshold must be a decimal [0,1]."
 
     with open(snakemake.input[1], 'r') as fi:
         whitelisted_cells = [x.strip() for x in fi.readlines()]
@@ -32,9 +37,9 @@ if __name__ == "__main__":
     '''
         given read error corrected input matrices, further remove (in 
         particular order):
-        1. sites covering less than <coverage_threshold> of total number of
+        1. sites covering less than <site_coverage_threshold> of total number of
            cells
-        2. cells covering less than <coverage_threshold> of the remaining sites
+        2. cells covering less than <cell_coverage_threshold> of the remaining sites
     '''
     covered = ~np.isnan(_N)
 
@@ -47,16 +52,16 @@ if __name__ == "__main__":
     selected_cells = (cell_coverage >= round(cell_coverage_threshold * \
                                              np.sum(selected_sites))) | whitelist    
 
-    f.write('[{}] gmelin-larch selected {} cells and {} sites\n'.format(datetime.now(), \
-                                                                        np.sum(selected_cells), \
-                                                                        np.sum(selected_sites)))
+    f.write('[{}] Sgootr selected {} cells and {} sites\n'.format(datetime.now(), \
+                                                                  np.sum(selected_cells), \
+                                                                  np.sum(selected_sites)))
     np.savez(snakemake.output[0], n=_N[selected_cells,:][:,selected_sites], \
                                   m=_M[selected_cells,:][:,selected_sites], \
                                   cna=_C[selected_cells,:][:,selected_sites], \
                                   rows=obj['rows'][selected_cells], \
                                   cols=obj['cols'][selected_sites])
 
-    f.write('[{}] gmelin-larch is subsetting label file\n'.format(datetime.now()))
+    f.write('[{}] Sgootr is subsetting label file\n'.format(datetime.now()))
     df = _df[_df['cell'].isin(cells[selected_cells])].reset_index(drop=True)
     df.to_csv(snakemake.output[1])
 

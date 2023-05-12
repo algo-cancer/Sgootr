@@ -1,5 +1,5 @@
 '''
-    error_correction.py <filtered_rc_cna.npz>    
+    error_correction.py <rc_cna.npz>    
 '''
 import sys, signal, numpy as np, multiprocessing as mp
 from datetime import datetime
@@ -79,13 +79,15 @@ if __name__ == "__main__":
     f = open(snakemake.log[0],'w')
     sys.stderr = sys.stdout = f
     
-    f.write('[{}] gmelin-larch is performing read error ' \
+    f.write('[{}] Sgootr is performing read error ' \
             'correction\n'.format(datetime.now())) 
 
     f.write('[{}] reading input\n'.format(datetime.now()))
     obj = np.load(snakemake.input[0], allow_pickle=True)
     _N, _M, _C = obj['n'], obj['m'], obj['cna']
-    e = snakemake.params.e
+    e = float(snakemake.params.e)
+    assert (e >= 0) and (e < 1), 'sequencing error rate e must be a decimal [0, 1).'
+
     n_entries = np.sum(~np.isnan(_N))
 
     f.write('[{}] done reading input, enumerating ' \
@@ -121,7 +123,7 @@ if __name__ == "__main__":
 
     n_corrected, n_deleted = map(sum, zip(*results))
 
-    f.write('[{}] gmelin-larch corrected {}/{} entries, among which {} were' \
+    f.write('[{}] Sgootr corrected {}/{} entries, among which {} were' \
             ' deleted\n'.format(datetime.now(), n_corrected, n_entries, n_deleted))
     np.savez(snakemake.output[0], n=arr_n, m=arr_m, cna=_C, rows=obj['rows'], cols=obj['cols'])                                                 
 

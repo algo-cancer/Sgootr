@@ -1,21 +1,21 @@
-OUTDIR: ./ # specify output directory, ending with '/'
-DEFAULT_CNA: 2
-E: .01
-SITE_COVERAGE_THRESHOLD: .66
-CELL_COVERAGE_THRESHOLD: .66
-STATUS_CONFIDENCE_THRESHOLD: 1 
-P00: .33
-P10: .33
-P11: .33
-P: .5
-D0010: .5
-D0011: 1
-D1011: .5
+OUTDIR: # output directory, ending with '/' 
+DEFAULT_CNA: 2 # default copy number, a natural number
+E: .01 # sequencing error rate, a decimal [0,1) 
+SITE_COVERAGE_THRESHOLD: .66 # a site must cover at least this fraction of cells, a decimal [0,1] 
+CELL_COVERAGE_THRESHOLD: .66 # a cell must cover at least this fraction of sites, a decimal [0,1]
+STATUS_CONFIDENCE_THRESHOLD: 1 # a site in a cell must have at least this number of reads to have a heuristically called methylation status, a natural number 
+P00: .33 # prior probability for the homozygous unmethylated status, a decimal (0,1)
+P10: .33 # prior probability for the heterozygous methylated status, a decimal (0,1)
+P11: .33 # prior probability for the homozygous methylated status, a decimal (0,1)
+P: .5 # probability of sampling the methylated allele from a pair of heterozygously methylated alleles, a decimal (0,1) 
+D0010: .5 # distance between homozygous unmethylated status and heterozygous methylated status, a positive number
+D0011: 1 # distance between homozygous unmethylated status and homozygous methylated status, a positive number
+D1011: .5 # distance between heterozygous methylated status and homozygous methylated status, a positive number
 ALGO: N # (F)astME v.s. (N)eighbor-joining
-MAX_ITER: 40
-KAPPA: .1
-PARTITION_VALIDITY_THRESHOLD: .5
-MINIMUM_SUBTREE_SIZE: .05
+MAX_ITER: 40 # the maximum number of iterations of pruning Sgootr will perform
+KAPPA: .1 # the fraction of sites Sgootr will prune each iteration, a decimal (0,1) 
+PARTITION_VALIDITY_THRESHOLD: .5 # fraction of cells with heuristically called methylation status within a subtree for a partition to be valid, a decimal (0,1)
+MINIMUM_SUBTREE_SIZE: .05 # fraction of total cells a subtree should have for a partition to be valid, a decimal (0,1)
 
 PATIENTS:
     CRC01: 

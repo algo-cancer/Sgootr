@@ -101,7 +101,7 @@ if __name__ == "__main__":
     f = open(snakemake.log[0], 'w')
     sys.stderr = sys.stdout = f
 
-    f.write('[{}] gmelin-larch is setting up the iterative ' \
+    f.write('[{}] Sgootr is setting up the iterative ' \
             'procedure\n'.format(datetime.now()))
 
     p00, p10, p11, p = float(snakemake.params.p00), float(snakemake.params.p10), \
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         f.write('[{}] P(00), P(10), and P(11) do not sum to 1. Performing ' \
                 'normalization\n'.format(datetime.now(), p00, p10, p11))
         p00, p10, p11 = p00/denom, p10/denom, p11/denom
-    assert (p>=0 and p<=1), 'p is not a probability'
+    assert (p>0 and p<1), 'p should be a a decimal (0,1)'
 
     sct = int(snakemake.params.status_confidence_threshold)
     f.write('[{}] proceeding with parameters P(00)={}, P(10)={}, P(11)={}, p={}, ' \

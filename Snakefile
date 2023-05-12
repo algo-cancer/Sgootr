@@ -141,7 +141,6 @@ rule build_tree:
 def get_prune_input(ws):
 
     i = int(ws.i)
-    nwks = [OUTDIR+ws.patient+"/t{}/tree.nwk".format(round) for round in range(i)]    
 
     return OUTDIR+ws.patient+"/t{}/tree.nwk".format(i-1), \
            OUTDIR+ws.patient+"/t{}/site_mask.npz".format(i-1), \

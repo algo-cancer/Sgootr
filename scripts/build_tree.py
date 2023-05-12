@@ -1,5 +1,5 @@
 '''
-    build_tree.py <t{i}_pairwise_distances.npz> <t{i-1}.nwk> <t{i-1}_RF.txt>
+    build_tree.py <t{i}/pairwise_distances.npz> <t{i-1}/RF.txt> <t{0,i}/tree.nwk> 
 '''
 
 import numpy as np, sys, os
@@ -81,14 +81,14 @@ if __name__ == "__main__":
     #      FastME 2.0 (Lefort et al., 2015)
     ####
     if algo == 'N': # If algorithm is Neighbor-joining
-        f.write('[{}] gmelin-larch is building neighbor-joining '\
+        f.write('[{}] Sgootr is building neighbor-joining '\
                 'tree with {} as root\n'.format(datetime.now(), root))
 
         dm = skbio.DistanceMatrix(pwd, [str(x) for x in range(len(cells))])
         tree = build(dm, str(np.where(cells==root)[0][0]), algo)
 
     elif algo == 'F': # If algorithm is FastME 2.0
-        f.write('[{}] gmelin-larch is building FastME 2.0 ' \
+        f.write('[{}] Sgootr is building FastME 2.0 ' \
                 'tree with {} as root\n'.format(datetime.now(), root))    
         f_mat = f_out_nwk[:-8] + 'fastme.mat'
         with open(f_mat, 'w') as fi:
