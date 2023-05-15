@@ -1,5 +1,5 @@
 '''
-    post_filter.py <corrected_rc_cna.npz> <whitelist.txt> <labels.csv>
+    post_filter.py <corrected_rc_cna.npz> <labels.csv> <[optional]whitelist.txt>
 '''
 
 import sys, numpy as np, pandas as pd
@@ -23,11 +23,12 @@ if __name__ == "__main__":
     assert (cell_coverage_threshold >= 0) and (cell_coverage_threshold <= 1), \
            "cell_coverage_threshold must be a decimal [0,1]."
 
-    with open(snakemake.input[1], 'r') as fi:
-        whitelisted_cells = [x.strip() for x in fi.readlines()]
-        whitelist = np.array([(x in whitelisted_cells) for x in cells])
+    if len(snakemake.input) == 3: # optional whitelist input
+        with open(snakemake.input[2], 'r') as fi:
+            whitelisted_cells = [x.strip() for x in fi.readlines()]
+            whitelist = np.array([(x in whitelisted_cells) for x in cells])
 
-    _df = pd.read_csv(snakemake.input[2], index_col=0)
+    _df = pd.read_csv(snakemake.input[1], index_col=0)
 
     assert np.array_equal(np.isnan(_N), np.isnan(_M)), \
            "Methylated and unmethylated read matrices have different coverage."
@@ -49,8 +50,13 @@ if __name__ == "__main__":
                                              _N.shape[0]))
 
     cell_coverage = np.sum(covered[:,selected_sites], axis=1)
-    selected_cells = (cell_coverage >= round(cell_coverage_threshold * \
-                                             np.sum(selected_sites))) | whitelist    
+
+    if len(snakemake.input) == 3: # if there are whitelisted cells
+        selected_cells = (cell_coverage >= round(cell_coverage_threshold * \
+                                                 np.sum(selected_sites))) | whitelist
+    else:
+        selected_cells = (cell_coverage >= round(cell_coverage_threshold * \
+                                                 np.sum(selected_sites)))    
 
     f.write('[{}] Sgootr selected {} cells and {} sites\n'.format(datetime.now(), \
                                                                   np.sum(selected_cells), \

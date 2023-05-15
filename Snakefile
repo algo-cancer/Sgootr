@@ -2,7 +2,10 @@ configfile: "config.yaml"
 ruleorder: iteration_setup > prune
 
 PATIENTS=list(config['PATIENTS'].keys())
-OUTDIR = config['OUTDIR']
+if config['OUTDIR'] == './':
+    OUTDIR = ''
+else:
+    OUTDIR = config['OUTDIR']
 
 rule all:
     input:
@@ -49,11 +52,14 @@ rule error_correction:
         "scripts/error_correction.py"
 
 
+# whitelist input is optional
 def get_post_filter_input(ws):
-
+    if config['PATIENTS'][ws.patient]['whitelist'] == None:
+        return OUTDIR+ws.patient+"/corrected_rc_cna.npz", \
+               config['PATIENTS'][ws.patient]['labels']
     return OUTDIR+ws.patient+"/corrected_rc_cna.npz", \
-           config['PATIENTS'][ws.patient]['whitelist'], \
-           config['PATIENTS'][ws.patient]['labels']
+           config['PATIENTS'][ws.patient]['labels'], \
+           config['PATIENTS'][ws.patient]['whitelist']
 
 rule post_filter:
     input:
