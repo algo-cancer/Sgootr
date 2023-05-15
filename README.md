@@ -76,7 +76,7 @@ We will describe the configurations and input files used by `Sgootr`, and the fi
 
  **Parameter**                  | **Default Value** | **Symbol Used in Paper** | **Description** 
 --------------------------------|-------------------|--------------------------|----------------
- `OUTDIR`                       | ``                | | path to directory in which `Sgootr` will create a directory containing the program output, ending with '/'; default is the current working directory 
+ `OUTDIR`                       | ` `                | | path to directory in which `Sgootr` will create a directory containing the program output, ending with '/'; default is the current working directory 
  `DEFAULT_CNA`                  | `2`               | | default copy number (e.g. 2 in a diploid human genome), a natural number 
  `E`                            | `.01`             | $\epsilon$ | per-base sequencing error rate, a realistically small decimal \[0,1)
  `SITE_COVERAGE_THRESHOLD`      | `.66`             | | used in post-correction filtering, removing CpG sites covering fewer than this fraction of cells, a decimal \[0,1] 
