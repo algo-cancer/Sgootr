@@ -98,14 +98,47 @@ We will describe the configurations and input files used by `Sgootr`, and the fi
 <a name="files"></a>
 ## Files
 
+Here we will describe the content and format for various input, output, and intermediary files or information.
+
 <a name="input"></a>
 ### Input
+
+The input files (or information) for each patient will be specified under `PATIENTS:` in `config.yaml`, one entry per patient. Users may specify multiple patients at once by enumerating multiple entries under `PATIENTS:`, and when the program is run, `Sgootr` will be applied to all specified patients simultaneously. For each patient entry, one needs to specify the following:
+
+**Input**         | **Required?** | **Description**
+------------------|---------------|----------------
+`methylated_rc`   | ✔️ | `.npz` file with fields `m` (cell-by-site `numpy` matrix where each entry contains the number of reads supporting a the _methylated_ status of a particular CpG site in a cell [^b]), `rows` (`numpy` array of cell names), and `cols` (`numpy` array of CpG site names)
+`unmethylated_rc` | ✔️ | `.npz` file with fields `m` (cell-by-site `numpy` matrix where each entry contains the number of reads supporting a the _unmethylated_ status of a particular CpG site in a cell [^b]), `rows` (`numpy` array of cell names), and `cols` (`numpy` array of CpG site names)
+`cna`             |   | `.npz` file with fields `m` (cell-by-site `numpy` matrix where each entry contains the called copy number of a particular CpG site in a cell [^c]), `rows` (`numpy` array of cell names), and `cols` (`numpy` array of CpG site names); leave blank if copy number calls are not available
+`whitelist`       |   | `.txt` file containing cells users wish to keep regardless of filtering rules, one cell name per line; leave blank if not applicable
+`root`            | ✔️ | name of the cell users wish to use as root for the constructed single cell methylation lineage tree
+`labels`          | ✔️ | `.csv` file with header `,cell,<label_type_1>,<label_type_2>,...`, where each subsequent row contains the index (starting at `0`), cell name, and value for `label_type_1`, `label_type_2`, etc. for the cell; cell names should appeear in the same order as they do in `methylated_rc`, `unmethylated_rc`, and `cna` (if available) `rows` attribute
+`palette`         | ✔️ | color palette according to which `Sgootr` will visualize the constructed tree; one entry per provided label type column in `labels`, and each entry is a mapping from each distinct value in the label type to a hexadecimal color code for cells of that label value
+
+Please see the sample input files from the [example](#example) above and the provided `config.yaml` file for a concrete example input to `Sgootr`.
 
 <a name="output"></a>
 ### Output
 
+Here we describe the output files `Sgootr` produces.
+
+**File**                   | **Description**
+---------------------------|----------------
+`t{iter}/tree.nwk`         | the single cell methylation tumor lineage tree `Sgootr` constructs at iteration `iter`, where the cells are named by their index in the `rows` field of `input.npz` 
+`t{iter}/{label_type}.png` | visualization of `t{iter}`, where the single cells at the leaves are colored according to the color palette specified for `label_type`
+
 <a name="intermediary"></a>
 ### Intermediary
+
+Here we describe select intermediary files in the output directory that may be of interest for the users.
+
+**File**                        | **Description**
+--------------------------------|----------------
+`input.npz`                     | post-correction, post-filtering input to the iterative procedure of `Sgootr`, with fields `n` (cell-by-site _methylated_ read count `numpy` matrix), `m` (cell-by-site _unmethylated_ read count `numpy` matrix), `cna` (cell-by-site copy number `numpy` matrix), `rows` (list of cells), and `cols` (list of CpG sites)
+`status_likelihoods.npz`        | `.npz` file with fields `p00`, `p10`, and `p11`, each being a cell-by-site `numpy` matrix where each entry containing the computed likelihoods of the observed reads for a CpG site in a cell being drawn from underlying homozygous unmethylated (referred to as P($0^c$ \|reads) in our paper), heterozygous (referred to as P(mixed\|reads) in our paper), or homozyous methylated alleles (referred to as P($1^c$\|reads) in our paper), respectively
+`t{iter}/RF.txt`                | the lower triangular matrix (excluding the diagonal) of an {`iter`+1}-by-{`iter`+1} matrix, where an entry in row `i` and column `j` denotes the Robinson-Foulds distance [^4] [^5] between the single cell methylation lineage trees `Sgootr` constructed at iteration `i` and iteration `j`
+`t{iter}/site_mask.npz`         | `.npz` file with field `mask`, which is a numpy array whose dimension is the number of total CpG sites considered in the iterative procedure of `Sgootr`. Entry `mask[j]` will be `np.inf` if CpG site `j` is used in constructing the single cell methylation tumor lineage tree at iteration `iter`; otherwise, entry `mask[j]` will be the partucular iteration site `j` was pruned out
+`t{iter}/persistence_scores.npz`| `.npz` file with fields `scores` (`numpy` array of dimension equal to the number of CpG sites in the `cols` field of `input.npz`, where entry `j` corresponds to the persistence score of site `j` measured on the tree `t{iter-1}`) and `nodes` (`numpy` array of dimension equal to the number of CpG sites in the `cols` field of `input.npz`, where entry `j` corresponds to the name of internal node whose induced bipartitions result in the measured persistence score for site `j`)
 
 <a name="support"></a>
 # Support and Contact
@@ -124,3 +157,11 @@ Gao, S., Mao, Y., Dong, J., Zhu, P., Xiu, D., Yan, L., Wen, L., Qiao, J., Tang, 
 [^\*]: See Supplemental Section S8 of our paper for tips on how to choose these parameters.
 
 [^a]: See Supplemental Section S9 for our paper for tips on how to choose these parameters.
+
+[^b]: We distinguish a value of `0` and a value of `np.nan` in the cell-by-site read count matrix. If the `methylated_rc['m']` matrix has value of `0` in cell `i` and site `j`, it means site `j` in cell `i` is covered by some reads but all of them are unmethylated; however, if the `methylated_rc['m']` matrix has the value `np.nan` in cell `i` and site `j`, it means site `j` is not covered at all in cell `i`.
+
+[^c]: Similar to the read count matrices, we distinguish a value of `0` and a value of `np.nan` in the cell-by-site copy number matrix, where `0` will denote a complete loss, and `np.nan` denotes the absence of a copy number call (and the copy number for that site in the the cell will be assumed to be the default).
+
+[^4]: Robinson, D.F., Foulds, L.R.: Comparison of phylogenetic trees. Mathematical biosciences **53**(1-2), 131-147 (February 1981). [https://doi.org/10.1016/0025-5564(81)90043-2](https://doi.org/10.1016/0025-5564(81)90043-2)
+
+[^5]: Sul, S.J., Williams, T.L.: An experimental analysis of robinson-foulds distance matrix algorithm. European Symposium on Algorithms, 793-804 (September 2008).
