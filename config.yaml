@@ -25,6 +25,7 @@ PATIENTS:
         whitelist: data/CRC01_whitelist.txt
         root: NC_507
         labels: data/CRC01_labels.csv
+        partial_order: /data/CDSLSahinalp/yuelin/Sgootr/data/CRC01_partial_order.csv
         palette:
             lesion:
                 NC: "#A7A7A7"
