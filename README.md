@@ -13,6 +13,7 @@ This is the repository for `Sgootr`, a tool that jointly infers a tumor lineage 
        * [Input](#input): content and format of input files to `Sgootr`
        * [Ouput](#output): content and format of output files to `Sgootr`
        * [Intermediary](#intermediary): content and format of select intermediary file to `Sgootr`
+     * [The Optional Biclustering Module](#biclustering): how to perform the optional biclustering procedure
   3. [Support and Contact](#support)
 
 <a name="start"></a>
@@ -34,8 +35,8 @@ Additionally, if you would like to use the biclustering module of `Sgootr`, foll
 Then:
 
 ```console
-$ git clone https://github.com/algo-cancer/Sgootr.git
-$ cd Sgootr
+ $ git clone https://github.com/algo-cancer/Sgootr.git
+ $ cd Sgootr
 ```
 
 You should be all set!
@@ -47,15 +48,15 @@ You should be all set!
 Once you have finished [setting up](#setup), we can apply `Sgootr` to the main dataset of interest from our paper, multiregionally-sampled metastatic colorectal patient CRC01 made available by Bian *et al.* [^1]. First, download the preprocessed data `data.tar.gz` into `Sgootr/` from [here](https://umd.box.com/v/sgootr-crc01), then we run `Sgootr` with the [default configurations](https://github.com/algo-cancer/Sgootr/blob/main/config.yaml):
 
 ```console
-$ tar -xf data.tar.gz
-$ snakemake --cores <number of cores> --use-conda
+ $ tar -xf data.tar.gz
+ $ snakemake --cores <number of cores> --use-conda
 ```
 
 Once the run has finished, to reproduce panels in Figure 2 in our paper, in the same working directory `Sgootr/`:
 
 ```console
-$ conda env create -f envs/sgootr.yml
-$ conda activate sgootr
+ $ conda env create -f envs/sgootr.yml
+ $ conda activate sgootr
 (sgootr) $ python scripts/get_results.py -c config.yaml -p CRC01
 (sgootr) $ conda deactivate
 ```
@@ -151,8 +152,30 @@ Here we describe select intermediary files in the output directory that may be o
 `t{iter}/tree.nwk`              | the single cell methylation tumor lineage tree `Sgootr` constructs at iteration `iter`, where the cells are named by their index in the `rows` field of `input.npz` 
 `t{iter}/{label_type}.png`      | visualization of `t{iter}`, where the single cells at the leaves are colored according to the color palette specified for `label_type`
 `t{iter}/RF.txt`                | the lower triangular matrix (excluding the diagonal) of an {`iter`+1}-by-{`iter`+1} matrix, where an entry in row `i` and column `j` denotes the Robinson-Foulds distance [^4] [^5] between the single cell methylation lineage trees `Sgootr` constructed at iteration `i` and iteration `j`
-`t{iter}/site_mask.npz`         | `.npz` file with field `mask`, which is a numpy array whose dimension is the number of total CpG sites considered in the iterative procedure of `Sgootr`. Entry `mask[j]` will be `np.inf` if CpG site `j` is used in constructing the single cell methylation tumor lineage tree at iteration `iter`; otherwise, entry `mask[j]` will be the partucular iteration site `j` was pruned out
+`t{iter}/site_mask.npz`         | `.npz` file with field `mask`, which is a `numpy` array whose dimension is the number of total CpG sites considered in the iterative procedure of `Sgootr`. Entry `mask[j]` will be `np.inf` if CpG site `j` is used in constructing the single cell methylation tumor lineage tree at iteration `iter`; otherwise, entry `mask[j]` will be the partucular iteration site `j` was pruned out
 `t{iter}/persistence_scores.npz`| `.npz` file with fields `scores` (`numpy` array of dimension equal to the number of CpG sites in the `cols` field of `input.npz`, where entry `j` corresponds to the persistence score of site `j` measured on the tree `t{iter-1}`) and `nodes` (`numpy` array of dimension equal to the number of CpG sites in the `cols` field of `input.npz`, where entry `j` corresponds to the name of internal node whose induced bipartitions result in the measured persistence score for site `j`)
+
+<a name="biclustering"></a>
+## The Optional Biclustering Module
+
+Aside from the main procedure of `Sgootr`, we introduce in our paper an optional biclustering module to perform coordinated cell and CpG site filtering. See the Methods section of our paper for a description of the formulation, and see Supplemental Section S1 of our paper for further analysis and benchmarking of the formulation. 
+
+To run biclustering, first ensure that [Gurobi has been properly setup](#setup) and that [the `conda` environment for `Sgootr` has been activated](#example), then from the `Sgootr/` directory:
+
+```console
+(sgootr) $ python scripts/bicluster.py -i <input> -o <output> -a <alpha> -b <beta> -c <threads> -t <runtime>
+```
+
+The required inputs are described below:
+
+**Input**         | **Symbol Used in Paper** | **Description**
+------------------|--------------------------|----------------
+`input`           | $M$                      | `.npz` file with fields `m` (binary cell-by-site `numpy` matrix, where `m[i][j] = 1` if site $j$ is covered (by at least one read) in cell $i$, and `m[i][j] = 0` otherwise)
+`output`          |                          | desired path to `.npz` file the biclustering command will generate with fields `rows` (`numpy` array of indices of selected cells) and `cols` (`numpy` array of indices of selected sites), with which users can obtain the submatrices
+`alpha`           | $\alpha$ [^&]| biclustering parameter denoting the fraction of cells the users would like to retain in the resulting submatrix; a decimal (0,1]
+`beta`            | $\beta$  [^&]| biclustering parameter denoting the fraction of sites the users would like to retain in the resulting submatrix; a decimal (0,1]
+`threads`         | | number of threads the user would like to use for biclustering; a natural number
+`runtime`         | | number of seconds expended by `Gurobi` before optimization returns wiht a `TIME_LIMIT` status
 
 <a name="support"></a>
 # Support and Contact
@@ -181,3 +204,5 @@ Gao, S., Mao, Y., Dong, J., Zhu, P., Xiu, D., Yan, L., Wen, L., Qiao, J., Tang, 
 [^5]: Sul, S.J., Williams, T.L.: An experimental analysis of robinson-foulds distance matrix algorithm. European Symposium on Algorithms, 793-804 (September 2008).
 
 [^6]: One outstanding issue of `Sgootr` is that, if tree construction fails before `MAX_ITER` is reached, the `snakemake` command fails ungracefully. While users may still run the  `python scripts/get_results.py -c <config_file> -p <patient>` command to get results for that patient, if multiple patients are specified in the `config.yaml` file and tree construction fails for one of the patients, the command fails for all patients, potentially terminating the pruning procedures for those patients prematurely. In this case, one should comment out the specifications for the patient on which tree construction fails in `config.yaml`, then run the pipeline with `snakemake --cores <number of cores> --use-conda` again. This will continue the procedure for the remaining patients. Alternatively, one may run `Sgootr` for one patient at a time.
+
+[^&]: See Supplemental Section S1 of our paper for tips on how to choose these parameters.
