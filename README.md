@@ -180,7 +180,7 @@ The required inputs are described below:
 <a name="support"></a>
 # Support and Contact
 
-Thank you for using `Sgootr`. The software and corresponding documentations are maintained by the research group of [Dr. S. Cenk Sahinalp](https://algo-cancer.github.io/). If you have encountered issues with the tool, please report on the [issue forum](https://github.com/algo-cancer/Sgootr/issues) or contact Yuelin Liu [[email]](yuelin@cs.umd.edu).
+Thank you for using `Sgootr`. The software and corresponding documentations are maintained by the research group of [Dr. S. Cenk Sahinalp](https://algo-cancer.github.io/). If you have encountered issues with the tool, please report on the [issue forum](https://github.com/algo-cancer/Sgootr/issues) or contact Yuelin Liu [[email]](yuelin@cs.umd.edu). Please always refer to the [official GitHub repository of `Sgootr`](https://github.com/algo-cancer/Sgootr) for the most updated version of the software and relevant documentation.
 
 <!-- References -->
 
