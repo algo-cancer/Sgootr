@@ -175,7 +175,7 @@ The required inputs are described below:
 `alpha`           | $\alpha$ [^&]| biclustering parameter denoting the fraction of cells the users would like to retain in the resulting submatrix; a decimal (0,1]
 `beta`            | $\beta$  [^&]| biclustering parameter denoting the fraction of sites the users would like to retain in the resulting submatrix; a decimal (0,1]
 `threads`         | | number of threads the user would like to use for biclustering; a natural number
-`runtime`         | | number of seconds expended by `Gurobi` before optimization returns witt a `TIME_LIMIT` status
+`runtime`         | | number of seconds expended by `Gurobi` before optimization returns with a `TIME_LIMIT` status
 
 <a name="support"></a>
 # Support and Contact
